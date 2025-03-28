@@ -15,5 +15,50 @@ The demonstrations can be directly integrated into lectures about database syste
 | Indexing                     | Index representation on disk <br> Index utilization (sequential scan vs. index scan vs. bitmap scan)  | 
 | Query Execution              | Physical query plan <br> Buffer usage                                                                 | 
 | Query Optimization           | Statistics <br> Cardinality estimation <br> Cost model <br> Query plan inspection                     | 
-| Concurrency Control          | Inspect running transaction <br> Inspect MVCC columns <br> Row locking                                | 
-| Recovery                     | Inspect running transaction <br> Inspect the write-ahead log                                          | 
+| Concurrency Control          | Inspect running transactions <br> Inspect MVCC columns <br> Row locking                                | 
+| Recovery                     | Inspect running transactions <br> Inspect the write-ahead log                                          | 
+
+
+## Demonstrations
+
+### Setup
+
+
+
+### Database Representation on Disk
+
+#### File organization
+
+#### Page structure
+
+##### Heap file
+
+##### Index file
+
+
+#### Tuple representation
+
+
+
+### Query Processing
+
+#### Statistics
+
+#### Query plan inspection
+
+##### Index utilization (sequential scan vs. index scan vs. bitmap scan)
+
+##### Run time, actual cardinalities, buffer usage
+
+
+#### Buffer cache inspection
+
+#### Inspect running transactions
+
+#### Row lock inspection
+
+#### WAL (write-ahead log) inspection
+
+#### Process inspection
+
+#### Client communication
