@@ -27,6 +27,10 @@ The demonstrations can be directly integrated into lectures about database syste
 
 ### Database Representation on Disk
 
+#### Settings
+
+The view `pg_settings` provides access to PostgreSQL’s configuration settings, including parameter names (`name`), current values (`setting`), and units (`unit`). We can use the `SHOW` and `SET` command to display and change individual (e.g., `SHOW name`) or all (e.g., `SHOW ALL`) configuration parameters.
+
 #### File organization
 
 Show the directory in which PostgreSQL stores its configuration and data (e.g., tables, indexes) files.
@@ -188,6 +192,50 @@ WHERE tablename = 'orders' and attname = 'o_totalprice';
 ```
 
 #### Query plan inspection
+
+##### Estimated execution costs, cardinalities, and query plan
+
+The well-known `EXPLAIN` command offers outputs in different format (i.e., `TEXT`, `JSON`, `XML`, `YAML`) and exposes total execution costs (`cost`), estimated cardinalities (`rows`), and information per operator.
+```
+EXPLAIN SELECT * FROM nation WHERE n_regionkey=4;
+```
+
+```
+                       QUERY PLAN                       
+--------------------------------------------------------
+ Seq Scan on nation  (cost=0.00..1.31 rows=5 width=109)
+   Filter: (n_regionkey = 4)
+```
+PostgreSQL does not expose a detailed cost break-down to the user (only per operator).
+For simple queries, the estimated costs can be explained with the available documentation.
+For example, the costs (1.31 ≈ 1.3125 = 1 * 1.0 + 25 * 0.01 + 25 * 0.0025) for the query are composed of costs for sequentially scanning all table's pages (1 * `seq_page_cost`), accessing all table's tuples (25 * `cpu_tuple_cost`), and operations on all table's tuples operator costs (25 * `cpu_operator_cost`)
+
+Recap, we can query current [settings](#settings):
+
+```
+SHOW seq_page_cost;
+```
+```
+ seq_page_cost 
+---------------
+ 1
+```
+```
+SHOW cpu_tuple_cost;
+```
+```
+ cpu_tuple_cost 
+----------------
+ 0.01
+```
+```
+SHOW cpu_operator_cost;
+```
+```
+ cpu_operator_cost 
+-------------------
+ 0.0025
+```
 
 ##### Index utilization (sequential scan vs. index scan vs. bitmap scan)
 
