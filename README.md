@@ -320,6 +320,60 @@ WHERE o_totalprice BETWEEN 10000 AND 200000;
 
 #### Buffer cache inspection
 
+The extension [`pg_buffercache`](https://www.postgresql.org/docs/current/pgbuffercache.html) enables an inspection of shared buffer states:
+
+```
+CREATE EXTENSION pg_buffercache;
+SELECT * FROM pg_buffercache LIMIT 5;
+```
+```
+SELECT * FROM pg_buffercache LIMIT 5;
+ bufferid | relfilenode | reltablespace | reldatabase | relforknumber | relblocknumber | isdirty | usagecount | pinning_backends 
+----------+-------------+---------------+-------------+---------------+----------------+---------+------------+------------------
+        1 |        1262 |          1664 |           0 |             0 |              0 | f       |          5 |                0
+        2 |        1260 |          1664 |           0 |             0 |              0 | f       |          5 |                0
+        3 |        1259 |          1663 |       16817 |             0 |              0 | f       |          5 |                0
+        4 |        1259 |          1663 |       16817 |             0 |              1 | f       |          5 |                0
+        5 |        1259 |          1663 |       16817 |             0 |              2 | f       |          5 |                0
+```
+
+We can query (1) statistics about used, dirty, and pinned pages:
+```
+SELECT 
+    COUNT(*) AS total_buffers,
+    SUM(CASE WHEN relfilenode IS NOT NULL THEN 1 ELSE 0 END) AS used_buffers,
+    SUM(CASE WHEN relfilenode IS NULL THEN 1 ELSE 0 END) AS empty_buffers,
+    SUM(CASE WHEN isdirty THEN 1 ELSE 0 END) AS dirty_buffers,
+    SUM(CASE WHEN pinning_backends > 0 THEN 1 ELSE 0 END) AS pinned_buffers
+FROM pg_buffercache;
+```
+```
+ total_buffers | used_buffers | empty_buffers | dirty_buffers | pinned_buffers 
+---------------+--------------+---------------+---------------+----------------
+         16384 |          788 |         15596 |             1 |              0
+```
+
+... and (2) for which relation there are currently most cached pages:
+```
+SELECT n.nspname, c.relname, count(*) AS buffers
+FROM pg_buffercache b
+JOIN pg_class c ON b.relfilenode = pg_relation_filenode(c.oid)
+JOIN pg_namespace n ON n.oid = c.relnamespace
+GROUP BY n.nspname, c.relname
+ORDER BY 3 DESC LIMIT 5;
+```
+```
+  nspname   |             relname             | buffers 
+------------+---------------------------------+---------
+ public     | orders                          |     226
+ pg_catalog | pg_attribute                    |     147
+ pg_catalog | pg_class                        |      69
+ pg_catalog | pg_attribute_relid_attnum_index |      37
+ pg_catalog | pg_amproc                       |      25
+```
+
+Using the pg_buffercache extension, we can, for example, show (1) how scanning large tables increases the corresponding buffer usage and (2) dirty and pinned pages for data modification queries and uncommitted transactions, respectively. 
+
 #### Inspect running transactions
 
 #### Row lock inspection
