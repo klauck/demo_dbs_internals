@@ -101,7 +101,7 @@ SELECT * FROM page_header(get_raw_page('region', 0));
  0/1B67540 |        0 |     0 |    44 |  7568 |    8192 |     8192 |       4 |         0
 ```
 
-From the header data, we determine (1) how much space is left on the page (upper-lower) and (2) how many tuples ((lower-header_size)/pointer_size = (44 − 24)/4 = 5)
+based on the header data, we can determine (1) how much space is left on the page (upper-lower) and (2) how many tuples ((lower-header_size)/pointer_size = (44 − 24)/4 = 5)
 are stored on the page.
 
 #### Tuple representation
@@ -129,6 +129,63 @@ FROM heap_page_items(get_raw_page('region', 0));
 ### Query Processing
 
 #### Statistics
+
+Relation-level statistics, such as the estimated number of tuples (`reltuples`) and the relation size in pages (`relpages`), are stored in the catalog table `pg_class`.
+
+```
+SELECT reltuples, relpages FROM pg_class WHERE relname = 'nation';
+```
+
+```
+ reltuples | relpages 
+-----------+----------
+        25 |        1
+```
+
+Attribute-level statistics can be queried using the view `pg_stats`:
+
+```
+SELECT null_frac, n_distinct, most_common_vals, most_common_freqs, correlation
+FROM pg_stats
+WHERE tablename = 'nation' and attname = 'n_regionkey';
+```
+```
+ null_frac | n_distinct | most_common_vals |   most_common_freqs   | correlation 
+-----------+------------+------------------+-----------------------+-------------
+         0 |       -0.2 | {0,1,2,3,4}      | {0.2,0.2,0.2,0.2,0.2} |   0.3476923
+```
+The queried statistics contain:
+- `null_frac` - the fraction of `NULL` values
+- `n_distinct` - the number of distinct values; a negative value means that PostgreSQL assumes the number of distinct values increases with the table cardinality, estimating it as -`reltuples`/`ndistinct`
+- `most_common_vals` and `most_common_freqs` - the most common values and their frequencies
+- `correlation` - indicating the sortedness of the table (`correlation=1` means sorted; `correlation≈0` means unsorted)
+
+**Further examples:**
+
+The statistics for the `n_nationkey` attribute indicate that the values are unique (`n_distinct`) and sorted (`correlation`)
+```
+SELECT n_distinct, correlation
+FROM pg_stats
+WHERE tablename = 'nation' and attname = 'n_nationkey';
+```
+```
+ n_distinct | correlation 
+------------+-------------
+         -1 |           1
+```
+
+In case relations contain many distinct values, histograms indicate the value distribution. Note, the values are unsorted (`correlation`≈0)
+```
+SELECT n_distinct, histogram_bounds, correlation
+FROM pg_stats
+WHERE tablename = 'orders' and attname = 'o_totalprice';
+```
+
+```
+ n_distinct  |                         histogram_bounds                         |  correlation  
+-------------+------------------------------------------------------------------+---------------
+ -0.94982266 | {877.30, 5178.77, 10127.58, 14137.17, 18301.12, ..., 522720.61}  | -0.0013608444
+```
 
 #### Query plan inspection
 
