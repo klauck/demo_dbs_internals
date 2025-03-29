@@ -374,9 +374,49 @@ ORDER BY 3 DESC LIMIT 5;
 
 Using the pg_buffercache extension, we can, for example, show (1) how scanning large tables increases the corresponding buffer usage and (2) dirty and pinned pages for data modification queries and uncommitted transactions, respectively. 
 
-#### Inspect running transactions
+#### Inspect transaction effects
 
-#### Row lock inspection
+We create a table `student` for showing effects: 
+```
+DROP TABLE IF EXISTS student;
+CREATE TABLE student (
+    student_id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
+    phone_number VARCHAR(20)
+);
+INSERT INTO student VALUES(1, 'Sarah', '0815');
+SELECT ctid, student_id, name, phone_number FROM student;
+```
+```
+ ctid  | student_id | name  | phone_number 
+-------+------------+-------+--------------
+ (0,1) |          1 | Sarah | 0815
+```
+Update a tuple's field and inspect the table with the tuple identifier.
+```
+UPDATE student SET phone_number = '42' WHERE student_id = 1 ;
+UPDATE student SET phone_number = '17' WHERE student_id = 1;
+SELECT ctid, student_id, name, phone_number FROM student;
+```
+```
+ ctid  | student_id | name  | phone_number 
+-------+------------+-------+--------------
+ (0,3) |          1 | Sarah | 17
+```
+Now, inspect the heap page with the MVCC information.
+```
+SELECT lp, t_xmin, t_xmax, t_ctid
+FROM heap_page_items(get_raw_page('student', 0));
+```
+```
+ lp | t_xmin | t_xmax | t_ctid 
+----+--------+--------+--------
+  1 | 146477 | 146478 | (0,2)
+  2 | 146478 | 146479 | (0,3)
+  3 | 146479 |      0 | (0,3)
+```
+
+#### Inspect running transactions and row locks
 
 #### WAL (write-ahead log) inspection
 
