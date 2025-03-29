@@ -239,8 +239,84 @@ SHOW cpu_operator_cost;
 
 ##### Index utilization (sequential scan vs. index scan vs. bitmap scan)
 
+Using the `EXPLAIN` command, we can show whether and how an index is used:
+
+Create an index:
+```
+CREATE INDEX ON orders(o_totalprice);
+```
+
+Show usage for low estimated result cardinality (1 expected row):
+```
+EXPLAIN SELECT *
+FROM orders
+WHERE o_totalprice = 10127.58;
+```
+```
+                                       QUERY PLAN                                       
+----------------------------------------------------------------------------------------
+ Index Scan using orders_o_totalprice_idx on orders  (cost=0.43..2.65 rows=1 width=107)
+   Index Cond: (o_totalprice = 10127.58)
+```
+Show table scan for high estimated result cardinality (1 expected row):
+```
+EXPLAIN SELECT *
+FROM orders
+WHERE o_totalprice BETWEEN 10000 AND 200000;
+```
+```
+                                       QUERY PLAN                                       
+----------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..48595.00 rows=1022608 width=107)
+   Filter: ((o_totalprice >= '10000'::numeric) AND (o_totalprice <= '200000'::numeric))
+```
+Index scan may have to access some page multiple times. Bitmap index scan scans first identify relevent pages and access them only once.
+However, they have higher 
+```
+EXPLAIN SELECT *
+FROM orders
+WHERE o_totalprice BETWEEN 10000 AND 50000;
+```
+```
+                                           QUERY PLAN                                            
+-------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on orders  (cost=2641.64..31478.22 rows=182772 width=107)
+   Recheck Cond: ((o_totalprice >= '10000'::numeric) AND (o_totalprice <= '50000'::numeric))
+   ->  Bitmap Index Scan on orders_o_totalprice_idx  (cost=0.00..2595.95 rows=182772 width=0)
+         Index Cond: ((o_totalprice >= '10000'::numeric) AND (o_totalprice <= '50000'::numeric))
+```
+
 ##### Run time, actual cardinalities, buffer usage
 
+Using the `ANALYZE` option, the query is actually executed, revealing actual (intermediate) result cardinalities as well as the optimization ('planning') and execution time.
+```
+EXPLAIN ANALYZE SELECT *
+FROM orders
+WHERE o_totalprice = 10127.58;
+```
+```
+Index Scan using orders_o_totalprice_idx on orders  (cost=0.43..2.65 rows=1 width=107) (actual time=2.283..2.286 rows=1 loops=1)
+   Index Cond: (o_totalprice = 10127.58)
+ Planning Time: 0.253 ms
+ Execution Time: 2.338 ms
+```
+The `BUFFERS` option in `EXPLAIN ANALYZE` reveals further execution details.
+We can, for example, inspect how many pages were already present in the buffer cache ('shared hit') and how many were read from disk or the operating system cache ('read').
+```
+EXPLAIN (ANALYZE, BUFFERS) SELECT *
+FROM orders
+WHERE o_totalprice BETWEEN 10000 AND 200000;
+```
+```
+                                                     QUERY PLAN                                                     
+--------------------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..48595.00 rows=1022608 width=107) (actual time=0.193..178.155 rows=1019277 loops=1)
+   Filter: ((o_totalprice >= '10000'::numeric) AND (o_totalprice <= '200000'::numeric))
+   Rows Removed by Filter: 480723
+   Buffers: shared hit=193 read=25902
+ Planning Time: 0.281 ms
+ Execution Time: 201.388 ms
+```
 
 #### Buffer cache inspection
 
