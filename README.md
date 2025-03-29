@@ -499,5 +499,19 @@ WHERE pg_class.relname = 'student';
 #### WAL (write-ahead log) inspection
 
 #### Process inspection
+Inspect PostgreSQL processes:
+```
+SELECT pid, query, backend_type FROM pg_stat_activity;
+```
+```
+  pid  |                         query                          |         backend_type         
+-------+--------------------------------------------------------+------------------------------
+ 38934 |                                                        | autovacuum launcher
+ 38936 |                                                        | logical replication launcher
+ 48303 | SELECT pid, query, backend_type FROM pg_stat_activity; | client backend
+ 38932 |                                                        | background writer
+ 38931 |                                                        | checkpointer
+ 38933 |                                                        | walwriter
+```
 
 #### Client communication
