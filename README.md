@@ -417,6 +417,84 @@ FROM heap_page_items(get_raw_page('student', 0));
 ```
 
 #### Inspect running transactions and row locks
+So far, we used auto commit.
+To inspect runnig/active transaction, we begin a transaction:
+```
+BEGIN TRANSACTION;
+demo_db_internals=*# UPDATE student SET phone_number = '0405' WHERE student_id = 1;
+```
+Inspect currently running transactions **from another `psql` shell**:
+```
+SELECT 
+    pid, 
+    usename, 
+    state, 
+    query_start, 
+    now() - query_start AS duration, 
+    query 
+FROM pg_stat_activity 
+WHERE state IN ('active', 'idle in transaction')
+ORDER BY query_start;
+```
+```
+  pid  | usename |        state        |          query_start          |    duration     |                             query                              
+-------+---------+---------------------+-------------------------------+-----------------+----------------------------------------------------------------
+ 48345 | wieso   | idle in transaction | 2025-03-29 13:14:22.717196+01 | 00:02:49.874883 | UPDATE student SET phone_number = '0405' WHERE student_id = 1;
+ 48303 | wieso   | active              | 2025-03-29 13:17:12.592079+01 | 00:00:00        | SELECT                                                        +
+       |         |                     |                               |                 |     pid,                                                      +
+       |         |                     |                               |                 |     usename,                                                  +
+       |         |                     |                               |                 |     state,                                                    +
+       |         |                     |                               |                 |     query_start,                                              +
+       |         |                     |                               |                 |     now() - query_start AS duration,                          +
+       |         |                     |                               |                 |     query                                                     +
+       |         |                     |                               |                 | FROM pg_stat_activity                                         +
+       |         |                     |                               |                 | WHERE state IN ('active', 'idle in transaction')              +
+       |         |                     |                               |                 | ORDER BY query_start;
+
+```
+
+Inspect the locked rows of the `student` table using the [`pgrowlocks`](https://www.postgresql.org/docs/current/pgrowlocks.html) module:
+```
+SELECT locked_row, locker, modes FROM pgrowlocks('student');
+```
+```
+ locked_row | locker |       modes       
+------------+--------+-------------------
+ (0,3)      | 146487 | {"No Key Update"}
+```
+
+If we execute `COMMIT TRANSACTION;` in the first shell, we see that the row is not locked anymore.
+
+```
+SELECT locked_row, locker, modes FROM pgrowlocks('student');
+```
+```
+ locked_row | locker | modes 
+------------+--------+-------
+(0 rows)
+```
+
+
+We can also inspect the corresponding buffer entry (it may ('t') or may not ('f') be dirty):
+```
+SELECT 
+    bufferid,
+    usagecount,
+    isdirty,
+    pinning_backends,
+    pg_class.relfilenode as relfilenode,
+    relblocknumber,
+    relname
+FROM pg_buffercache
+JOIN pg_class ON pg_buffercache.relfilenode = pg_class.relfilenode
+WHERE pg_class.relname = 'student';
+```
+```
+ bufferid | usagecount | isdirty | pinning_backends | relfilenode | relblocknumber | relname 
+----------+------------+---------+------------------+-------------+----------------+---------
+     1113 |          5 | t       |                0 |    17843856 |              0 | student
+```
+
 
 #### WAL (write-ahead log) inspection
 
