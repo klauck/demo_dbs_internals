@@ -6,7 +6,7 @@ The demonstrations cover key aspects of the database representation on disk and 
 <img src="https://github.com/klauck/demo_dbs_internal/blob/main/demonstrated_database_system_internals.png" width="600" />
 
 ## Demonstrations per Lecture Topic
-The demonstrations can be directly integrated into lectures about database system internals, for example, by switching between slide presentations giving background and hands-on demonstrations using PostgreSQL’s command line tool psql. We list common lecture topics and suitable demonstrations in the following table.
+The demonstrations can be directly integrated into lectures about database system internals, for example, by switching between slide presentations giving background and hands-on demonstrations using PostgreSQL’s command line tool `psql`. We list common lecture topics and suitable demonstrations in the following table.
 
 | Lecture Topic                | Suitable Demonstrations                                                                               |
 |:----------------------------:|-------------------------------------------------------------------------------------------------------|
@@ -515,3 +515,24 @@ SELECT pid, query, backend_type FROM pg_stat_activity;
 ```
 
 #### Client communication
+
+Database systems are usually run as server application, where clients can connect to.
+The common way to communicate for PostgreSQL is using the wire protocol on top of TCP.
+PostgreSQL uses the default port 5432 and implements a custom messaging protocol.
+After initializing the connection (including startup messages, authentication and others), SQL queries from the user and result tables are encoded in tagged messages.
+The PostgreSQL wire format is also used for other newer systems and a typical application level protocol on TCP.
+For eduction purposes, it is valuable to understand that the default result table format is not engineered for large data transfers.
+Noteworthy, PostgreSQL's optimizers query execution costs do not include conversion and transmission to client, which can become the bottleneck of queries.
+The exchanged messages can be observed, for example, with wireshark:
+
+- Open `Wireshark`
+- Select the network interface (e.g., Loopback)
+- Start observing by clicking the "Start capturing packets" button (the shark fin icon)
+- Filter by PostgreSQL protocol: `pgsql`
+
+Connect to a PostgreSQL server via `psql` and the loopback (which is not the default)
+```
+psql -h 127.0.0.1 -d demo_db_internals
+```
+Wireshark screenshot, showing the transmitted query:
+
