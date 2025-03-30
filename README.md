@@ -23,6 +23,37 @@ The demonstrations can be directly integrated into lectures about database syste
 
 ### Setup
 
+You can run the demonstrations on your PostgreSQL installation, but you may require superuser right for some experiments.
+
+#### Docker Setup
+
+You can also run the demonstrations using docker.
+
+Create and start the container with PostgreSQL 17 (You must execute the command from the git repositories root folder so that the `scripts` and `data` folder are accessible for data loading.):
+
+`docker run --name demo_postgres -v .:/root -e POSTGRES_USER=postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=demo_db_internals -p 5432:5432 -d postgres:17`
+
+Connect to PostgreSQL with `psql`:
+
+`docker exec -it demo_postgres psql -U postgres -d demo_db_internals`
+
+To stop the running container:
+
+`docker stop demo_postgres`
+
+Tostart it again:
+
+`docker start demo_postgres`
+
+
+With the following command, you get a shell in the container, e.g., for inspecting created files by PostgreSQL
+
+`docker exec -it demo_postgres bash`
+
+We provide a script for loading TPC-H data with scale factor 0.01:
+
+`sh scripts/load_tpch.sh`
+
 
 
 ### Database Representation on Disk
