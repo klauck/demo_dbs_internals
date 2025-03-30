@@ -3,7 +3,7 @@
 We present a collection of demonstrations for teaching and learning database system internals using PostgreSQL.
 The demonstrations cover key aspects of the database representation on disk and query processing, visualized in the following graphic.
 
-<img src="https://github.com/klauck/demo_dbs_internal/blob/main/demonstrated_database_system_internals.png" width="400" />
+<img src="https://github.com/klauck/demo_dbs_internal/blob/main/figures/demonstrated_database_system_internals.png" width="400" />
 
 ## Demonstrations per Lecture Topic
 The demonstrations can be directly integrated into lectures about database system internals, for example, by switching between slide presentations giving background and hands-on demonstrations using PostgreSQL’s command line tool `psql`. We list common lecture topics and suitable demonstrations in the following table.
@@ -594,4 +594,4 @@ psql -h 127.0.0.1 -d demo_db_internals
 ```
 Wireshark screenshot, showing the transmitted query:
 
-<img src="https://github.com/klauck/demo_dbs_internal/blob/main/wireshark_screenshot.png" width="900" />
+<img src="https://github.com/klauck/demo_dbs_internal/blob/main/figures/wireshark_screenshot.png" width="900" />
