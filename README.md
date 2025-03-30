@@ -23,36 +23,63 @@ The demonstrations can be directly integrated into lectures about database syste
 
 ### Setup
 
-You can run the demonstrations on your PostgreSQL installation, but you may require superuser rights for some experiments.
+You can run the demonstrations on an existing PostgreSQL installation.
+However, some experiments may require **superuser** privileges.
+Also, the **data-loading scripts must be modified** if you are not using Docker.
 
-#### Docker Setup
+### Docker Setup
 
-You can also run the demonstrations using docker.
+Alternatively, you can run the demonstrations using Docker.
 
-Create and start the container with PostgreSQL 17 (You must execute the command from the git repositories root folder so that the `scripts` and `data` folder are accessible for data loading.):
+**1. Create and Start the Container**
+   
+   Ensure you execute the following command from the root folder of the Git repository to provide access to scripts and data:
+   
+```
+docker run --name demo_postgres \
+-v .:/root \
+-e POSTGRES_USER=postgres \
+-e POSTGRES_HOST_AUTH_METHOD=trust \
+-e POSTGRES_DB=demo_db_internals \
+-p 5432:5432 \
+-d postgres:17
+```
+  
+**2. Load TPC-H Data**
 
-```docker run --name demo_postgres -v .:/root -e POSTGRES_USER=postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=demo_db_internals -p 5432:5432 -d postgres:17```
+We provide a script to load TPC-H data with a scale factor of 0.01:
 
-We provide a script for loading TPC-H data with scale factor 0.01:
+```
+sh scripts/load_tpch.sh
+```
 
-`sh scripts/load_tpch.sh`
+**3. Connect to PostgreSQL**
+   To connect using `psql`:
 
-Connect to PostgreSQL with `psql`:
+```
+docker exec -it demo_postgres psql -U postgres -d demo_db_internals
+```
 
-`docker exec -it demo_postgres psql -U postgres -d demo_db_internals`
+**4. Manage the Container**
+   - Stop the container:
 
-To stop the running container:
+```
+docker stop demo_postgres
+```
 
-`docker stop demo_postgres`
+- Start the container again:
 
-To start it again:
+```
+docker start demo_postgres
+```
 
-`docker start demo_postgres`
+**5. Open the Container Shell**
 
+Open a shell in the container, e.g., for inspecting created files by PostgreSQL
 
-With the following command, you get a shell in the container, e.g., for inspecting created files by PostgreSQL
-
-`docker exec -it demo_postgres bash`
+```
+docker exec -it demo_postgres bash
+```
 
 
 
