@@ -15,15 +15,15 @@ The demonstrations can be directly integrated into lectures about database syste
 | Indexing                     | Index representation on disk <br> Index utilization (sequential scan vs. index scan vs. bitmap scan)  | 
 | Query Execution              | Physical query plan <br> Buffer usage                                                                 | 
 | Query Optimization           | Statistics <br> Cardinality estimation <br> Cost model <br> Query plan inspection                     | 
-| Concurrency Control          | Inspect running transactions <br> Inspect MVCC columns <br> Row locking                                | 
-| Recovery                     | Inspect running transactions <br> Inspect the write-ahead log                                          | 
+| Concurrency Control          | Inspect running transactions <br> Inspect MVCC columns <br> Row locking                               | 
+| Recovery                     | Inspect running transactions <br> Inspect the write-ahead log                                         | 
 
 
 ## Demonstrations
 
 ### Setup
 
-You can run the demonstrations on your PostgreSQL installation, but you may require superuser right for some experiments.
+You can run the demonstrations on your PostgreSQL installation, but you may require superuser rights for some experiments.
 
 #### Docker Setup
 
@@ -31,7 +31,7 @@ You can also run the demonstrations using docker.
 
 Create and start the container with PostgreSQL 17 (You must execute the command from the git repositories root folder so that the `scripts` and `data` folder are accessible for data loading.):
 
-`docker run --name demo_postgres -v .:/root -e POSTGRES_USER=postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=demo_db_internals -p 5432:5432 -d postgres:17`
+```docker run --name demo_postgres -v .:/root -e POSTGRES_USER=postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=demo_db_internals -p 5432:5432 -d postgres:17```
 
 Connect to PostgreSQL with `psql`:
 
@@ -41,7 +41,7 @@ To stop the running container:
 
 `docker stop demo_postgres`
 
-Tostart it again:
+To start it again:
 
 `docker start demo_postgres`
 
@@ -60,7 +60,7 @@ We provide a script for loading TPC-H data with scale factor 0.01:
 
 #### Settings
 
-The view `pg_settings` provides access to PostgreSQL’s configuration settings, including parameter names (`name`), current values (`setting`), and units (`unit`). We can use the `SHOW` and `SET` command to display and change individual (e.g., `SHOW name`) or all (e.g., `SHOW ALL`) configuration parameters.
+The view `pg_settings` provides access to PostgreSQL’s configuration settings, including parameter names (`name`), current values (`setting`), and units (`unit`). We can use the `SHOW` and `SET` commands to display and change individual (e.g., `SHOW name`) or all (e.g., `SHOW ALL`) configuration parameters.
 
 #### File organization
 
@@ -141,7 +141,7 @@ are stored on the page.
 
 #### Tuple representation
 
-We can also inspect individual tuples stored per page, including the linepointers (`lp`), byte offsets (`lp_off`), and MVCC information (`t_xmin`, `t_xmax`, `t_ctid`):
+We can also inspect individual tuples stored per page, including the line pointers (`lp`), byte offsets (`lp_off`), and MVCC information (`t_xmin`, `t_xmax`, `t_ctid`):
 
 ```
 SELECT *
@@ -237,7 +237,7 @@ EXPLAIN SELECT * FROM nation WHERE n_regionkey=4;
  Seq Scan on nation  (cost=0.00..1.31 rows=5 width=109)
    Filter: (n_regionkey = 4)
 ```
-PostgreSQL does not expose a detailed cost break-down to the user (only per operator).
+PostgreSQL does not expose a detailed cost breakdown to the user (only per operator).
 For simple queries, the estimated costs can be explained with the available documentation.
 For example, the costs (1.31 ≈ 1.3125 = 1 * 1.0 + 25 * 0.01 + 25 * 0.0025) for the query are composed of costs for sequentially scanning all table's pages (1 * `seq_page_cost`), accessing all table's tuples (25 * `cpu_tuple_cost`), and operations on all table's tuples operator costs (25 * `cpu_operator_cost`)
 
@@ -301,8 +301,8 @@ WHERE o_totalprice BETWEEN 10000 AND 200000;
  Seq Scan on orders  (cost=0.00..48595.00 rows=1022608 width=107)
    Filter: ((o_totalprice >= '10000'::numeric) AND (o_totalprice <= '200000'::numeric))
 ```
-Index scan may have to access some page multiple times. Bitmap index scan scans first identify relevent pages and access them only once.
-However, they have higher 
+An index scan may have to access some pages multiple times. A bitmap index scan first identifies all relevant pages and accesses them only once.
+However, it has higher upfront costs.
 ```
 EXPLAIN SELECT *
 FROM orders
@@ -486,6 +486,7 @@ ORDER BY query_start;
 
 Inspect the locked rows of the `student` table using the [`pgrowlocks`](https://www.postgresql.org/docs/current/pgrowlocks.html) module:
 ```
+CREATE extension pgrowlocks;
 SELECT locked_row, locker, modes FROM pgrowlocks('student');
 ```
 ```
@@ -547,14 +548,14 @@ SELECT pid, query, backend_type FROM pg_stat_activity;
 
 #### Client communication
 
-Database systems are usually run as server application, where clients can connect to.
+Database systems are usually run as server applications, where clients can connect to.
 The common way to communicate for PostgreSQL is using the wire protocol on top of TCP.
 PostgreSQL uses the default port 5432 and implements a custom messaging protocol.
-After initializing the connection (including startup messages, authentication and others), SQL queries from the user and result tables are encoded in tagged messages.
-The PostgreSQL wire format is also used for other newer systems and a typical application level protocol on TCP.
-For eduction purposes, it is valuable to understand that the default result table format is not engineered for large data transfers.
+After initializing the connection (including startup messages, authentication, and others), SQL queries from the user and result tables are encoded in tagged messages.
+The PostgreSQL wire format is also used for other newer systems and a typical application-level protocol on TCP.
+For education purposes, it is valuable to understand that the default result table format is not engineered for large data transfers.
 Noteworthy, PostgreSQL's optimizers query execution costs do not include conversion and transmission to client, which can become the bottleneck of queries.
-The exchanged messages can be observed, for example, with wireshark:
+The exchanged messages can be observed, for example, with Wireshark:
 
 - Open `Wireshark`
 - Select the network interface (e.g., Loopback)
