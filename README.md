@@ -33,6 +33,10 @@ Create and start the container with PostgreSQL 17 (You must execute the command 
 
 ```docker run --name demo_postgres -v .:/root -e POSTGRES_USER=postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=demo_db_internals -p 5432:5432 -d postgres:17```
 
+We provide a script for loading TPC-H data with scale factor 0.01:
+
+`sh scripts/load_tpch.sh`
+
 Connect to PostgreSQL with `psql`:
 
 `docker exec -it demo_postgres psql -U postgres -d demo_db_internals`
@@ -50,10 +54,6 @@ With the following command, you get a shell in the container, e.g., for inspecti
 
 `docker exec -it demo_postgres bash`
 
-We provide a script for loading TPC-H data with scale factor 0.01:
-
-`sh scripts/load_tpch.sh`
-
 
 
 ### Database Representation on Disk
@@ -66,7 +66,7 @@ The view `pg_settings` provides access to PostgreSQL’s configuration settings,
 
 Show the directory in which PostgreSQL stores its configuration and data (e.g., tables, indexes) files.
 
-```
+```sql
 SELECT setting FROM pg_settings WHERE name = 'data_directory';
 ```
 
@@ -79,7 +79,7 @@ SELECT setting FROM pg_settings WHERE name = 'data_directory';
 Within this directory, there is a subdirectory for every database, which groups a set of tables.
 Each database has an assigned OID (Object Identifier), which can be queried:
 
-```
+```sql
 SELECT oid FROM pg_database WHERE datname = 'demo_db_internals';
 ```
 ```
@@ -90,8 +90,8 @@ SELECT oid FROM pg_database WHERE datname = 'demo_db_internals';
 Inside the database subdirectory, data files (e.g., for specific tables) are stored.
 The following query returns the file name for the `region` table:
 
-```
-SELECT relfilenode FROM pg_class WHERE relname='region';
+```sql
+SELECT relfilenode FROM pg_class WHERE relname = 'region';
 ```
 ```
  relfilenode 
@@ -103,7 +103,7 @@ The `region` table is, thus, stored in the file `/opt/homebrew/var/postgres/base
 
 Or we can directly query the file path for a relation based on the PostgreSQL directory:
 
-```
+```sql
 SELECT pg_relation_filepath('region');
 ```
 ```
@@ -126,7 +126,7 @@ We can examine the internal structure of a page using the `pageinspect` extensio
 
 Inspect the page header of the `region` table's first block
 
-```
+```sql
 CREATE EXTENSION pageinspect;
 SELECT * FROM page_header(get_raw_page('region', 0));
 ```
@@ -136,14 +136,14 @@ SELECT * FROM page_header(get_raw_page('region', 0));
  0/1B67540 |        0 |     0 |    44 |  7568 |    8192 |     8192 |       4 |         0
 ```
 
-based on the header data, we can determine (1) how much space is left on the page (upper-lower) and (2) how many tuples ((lower-header_size)/pointer_size = (44 − 24)/4 = 5)
+Based on the header data, we can determine (1) how much space is left on the page (upper-lower) and (2) how many tuples ((lower-header_size)/pointer_size = (44 − 24)/4 = 5)
 are stored on the page.
 
 #### Tuple representation
 
 We can also inspect individual tuples stored per page, including the line pointers (`lp`), byte offsets (`lp_off`), and MVCC information (`t_xmin`, `t_xmax`, `t_ctid`):
 
-```
+```sql
 SELECT *
 FROM heap_page_items(get_raw_page('region', 0));
 ```
@@ -167,7 +167,7 @@ FROM heap_page_items(get_raw_page('region', 0));
 
 Relation-level statistics, such as the estimated number of tuples (`reltuples`) and the relation size in pages (`relpages`), are stored in the catalog table `pg_class`.
 
-```
+```sql
 SELECT reltuples, relpages FROM pg_class WHERE relname = 'nation';
 ```
 
@@ -179,7 +179,7 @@ SELECT reltuples, relpages FROM pg_class WHERE relname = 'nation';
 
 Attribute-level statistics can be queried using the view `pg_stats`:
 
-```
+```sql
 SELECT null_frac, n_distinct, most_common_vals, most_common_freqs, correlation
 FROM pg_stats
 WHERE tablename = 'nation' and attname = 'n_regionkey';
@@ -198,7 +198,7 @@ The queried statistics contain:
 **Further examples:**
 
 The statistics for the `n_nationkey` attribute indicate that the values are unique (`n_distinct`) and sorted (`correlation`)
-```
+```sql
 SELECT n_distinct, correlation
 FROM pg_stats
 WHERE tablename = 'nation' and attname = 'n_nationkey';
@@ -210,7 +210,7 @@ WHERE tablename = 'nation' and attname = 'n_nationkey';
 ```
 
 In case relations contain many distinct values, histograms indicate the value distribution. Note, the values are unsorted (`correlation`≈0)
-```
+```sql
 SELECT n_distinct, histogram_bounds, correlation
 FROM pg_stats
 WHERE tablename = 'orders' and attname = 'o_totalprice';
@@ -227,7 +227,7 @@ WHERE tablename = 'orders' and attname = 'o_totalprice';
 ##### Estimated execution costs, cardinalities, and query plan
 
 The well-known `EXPLAIN` command offers outputs in different format (i.e., `TEXT`, `JSON`, `XML`, `YAML`) and exposes total execution costs (`cost`), estimated cardinalities (`rows`), and information per operator.
-```
+```sql
 EXPLAIN SELECT * FROM nation WHERE n_regionkey=4;
 ```
 
@@ -243,7 +243,7 @@ For example, the costs (1.31 ≈ 1.3125 = 1 * 1.0 + 25 * 0.01 + 25 * 0.0025) for
 
 Recap, we can query current [settings](#settings):
 
-```
+```sql
 SHOW seq_page_cost;
 ```
 ```
@@ -251,7 +251,7 @@ SHOW seq_page_cost;
 ---------------
  1
 ```
-```
+```sql
 SHOW cpu_tuple_cost;
 ```
 ```
@@ -259,7 +259,7 @@ SHOW cpu_tuple_cost;
 ----------------
  0.01
 ```
-```
+```sql
 SHOW cpu_operator_cost;
 ```
 ```
@@ -273,12 +273,12 @@ SHOW cpu_operator_cost;
 Using the `EXPLAIN` command, we can show whether and how an index is used:
 
 Create an index:
-```
+```sql
 CREATE INDEX ON orders(o_totalprice);
 ```
 
 Show usage for low estimated result cardinality (1 expected row):
-```
+```sql
 EXPLAIN SELECT *
 FROM orders
 WHERE o_totalprice = 10127.58;
@@ -290,7 +290,7 @@ WHERE o_totalprice = 10127.58;
    Index Cond: (o_totalprice = 10127.58)
 ```
 Show table scan for high estimated result cardinality (1 expected row):
-```
+```sql
 EXPLAIN SELECT *
 FROM orders
 WHERE o_totalprice BETWEEN 10000 AND 200000;
@@ -303,7 +303,7 @@ WHERE o_totalprice BETWEEN 10000 AND 200000;
 ```
 An index scan may have to access some pages multiple times. A bitmap index scan first identifies all relevant pages and accesses them only once.
 However, it has higher upfront costs.
-```
+```sql
 EXPLAIN SELECT *
 FROM orders
 WHERE o_totalprice BETWEEN 10000 AND 50000;
@@ -320,7 +320,7 @@ WHERE o_totalprice BETWEEN 10000 AND 50000;
 ##### Run time, actual cardinalities, buffer usage
 
 Using the `ANALYZE` option, the query is actually executed, revealing actual (intermediate) result cardinalities as well as the optimization ('planning') and execution time.
-```
+```sql
 EXPLAIN ANALYZE SELECT *
 FROM orders
 WHERE o_totalprice = 10127.58;
@@ -333,7 +333,7 @@ Index Scan using orders_o_totalprice_idx on orders  (cost=0.43..2.65 rows=1 widt
 ```
 The `BUFFERS` option in `EXPLAIN ANALYZE` reveals further execution details.
 We can, for example, inspect how many pages were already present in the buffer cache ('shared hit') and how many were read from disk or the operating system cache ('read').
-```
+```sql
 EXPLAIN (ANALYZE, BUFFERS) SELECT *
 FROM orders
 WHERE o_totalprice BETWEEN 10000 AND 200000;
@@ -353,12 +353,11 @@ WHERE o_totalprice BETWEEN 10000 AND 200000;
 
 The extension [`pg_buffercache`](https://www.postgresql.org/docs/current/pgbuffercache.html) enables an inspection of shared buffer states:
 
-```
+```sql
 CREATE EXTENSION pg_buffercache;
 SELECT * FROM pg_buffercache LIMIT 5;
 ```
 ```
-SELECT * FROM pg_buffercache LIMIT 5;
  bufferid | relfilenode | reltablespace | reldatabase | relforknumber | relblocknumber | isdirty | usagecount | pinning_backends 
 ----------+-------------+---------------+-------------+---------------+----------------+---------+------------+------------------
         1 |        1262 |          1664 |           0 |             0 |              0 | f       |          5 |                0
@@ -369,7 +368,7 @@ SELECT * FROM pg_buffercache LIMIT 5;
 ```
 
 We can query (1) statistics about used, dirty, and pinned pages:
-```
+```sql
 SELECT 
     COUNT(*) AS total_buffers,
     SUM(CASE WHEN relfilenode IS NOT NULL THEN 1 ELSE 0 END) AS used_buffers,
@@ -385,7 +384,7 @@ FROM pg_buffercache;
 ```
 
 ... and (2) for which relation there are currently most cached pages:
-```
+```sql
 SELECT n.nspname, c.relname, count(*) AS buffers
 FROM pg_buffercache b
 JOIN pg_class c ON b.relfilenode = pg_relation_filenode(c.oid)
@@ -408,7 +407,7 @@ Using the pg_buffercache extension, we can, for example, show (1) how scanning l
 #### Inspect transaction effects
 
 We create a table `student` for showing effects: 
-```
+```sql
 DROP TABLE IF EXISTS student;
 CREATE TABLE student (
     student_id SERIAL PRIMARY KEY,
@@ -424,7 +423,7 @@ SELECT ctid, student_id, name, phone_number FROM student;
  (0,1) |          1 | Sarah | 0815
 ```
 Update a tuple's field and inspect the table with the tuple identifier.
-```
+```sql
 UPDATE student SET phone_number = '42' WHERE student_id = 1 ;
 UPDATE student SET phone_number = '17' WHERE student_id = 1;
 SELECT ctid, student_id, name, phone_number FROM student;
@@ -435,7 +434,7 @@ SELECT ctid, student_id, name, phone_number FROM student;
  (0,3) |          1 | Sarah | 17
 ```
 Now, inspect the heap page with the MVCC information.
-```
+```sql
 SELECT lp, t_xmin, t_xmax, t_ctid
 FROM heap_page_items(get_raw_page('student', 0));
 ```
@@ -450,12 +449,12 @@ FROM heap_page_items(get_raw_page('student', 0));
 #### Inspect running transactions and row locks
 So far, we used auto commit.
 To inspect runnig/active transaction, we begin a transaction:
-```
+```sql
 BEGIN TRANSACTION;
 demo_db_internals=*# UPDATE student SET phone_number = '0405' WHERE student_id = 1;
 ```
 Inspect currently running transactions **from another `psql` shell**:
-```
+```sql
 SELECT 
     pid, 
     usename, 
@@ -485,7 +484,7 @@ ORDER BY query_start;
 ```
 
 Inspect the locked rows of the `student` table using the [`pgrowlocks`](https://www.postgresql.org/docs/current/pgrowlocks.html) module:
-```
+```sql
 CREATE extension pgrowlocks;
 SELECT locked_row, locker, modes FROM pgrowlocks('student');
 ```
@@ -497,7 +496,7 @@ SELECT locked_row, locker, modes FROM pgrowlocks('student');
 
 If we execute `COMMIT TRANSACTION;` in the first shell, we see that the row is not locked anymore.
 
-```
+```sql
 SELECT locked_row, locker, modes FROM pgrowlocks('student');
 ```
 ```
@@ -508,7 +507,7 @@ SELECT locked_row, locker, modes FROM pgrowlocks('student');
 
 
 We can also inspect the corresponding buffer entry (it may ('t') or may not ('f') be dirty):
-```
+```sql
 SELECT 
     bufferid,
     usagecount,
@@ -532,7 +531,7 @@ WHERE pg_class.relname = 'student';
 
 #### Process inspection
 Inspect PostgreSQL processes:
-```
+```sql
 SELECT pid, query, backend_type FROM pg_stat_activity;
 ```
 ```
