@@ -31,9 +31,17 @@ Also, the **data-loading scripts must be modified** if you are not using Docker.
 
 Alternatively, you can run the demonstrations using Docker.
 
-**1. Create and Start the Container**
+**1. Get the Scripts and Data**
+
+```
+git clone git@github.com:klauck/demo_dbs_internals.git
+cd demo_dbs_internals
+```
+
+
+**2. Create and Start the Container**
    
-   Ensure you execute the following command from the root folder of the Git repository to provide access to scripts and data:
+   Ensure you **execute the following command from the root folder of the Git repository** to provide access to scripts and data:
    
 ```
 docker run --name demo_postgres \
@@ -45,7 +53,7 @@ docker run --name demo_postgres \
 -d postgres:17
 ```
   
-**2. Load TPC-H Data**
+**3. Load TPC-H Data**
 
 We provide a script to load TPC-H data with a scale factor of 0.01:
 
@@ -53,14 +61,14 @@ We provide a script to load TPC-H data with a scale factor of 0.01:
 sh scripts/load_tpch.sh
 ```
 
-**3. Connect to PostgreSQL**
+**4. Connect to PostgreSQL**
    To connect using `psql`:
 
 ```
 docker exec -it demo_postgres psql -U postgres -d demo_db_internals
 ```
 
-**4. Manage the Container**
+**5. Manage the Container**
    - Stop the container:
 
 ```
@@ -73,7 +81,7 @@ docker stop demo_postgres
 docker start demo_postgres
 ```
 
-**5. Open the Container Shell**
+**6. Open the Container Shell**
 
 Open a shell in the container, e.g., for inspecting created files by PostgreSQL
 
