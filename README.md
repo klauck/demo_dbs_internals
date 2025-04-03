@@ -95,7 +95,7 @@ docker exec -it demo_postgres bash
 
 #### Settings
 
-The view `pg_settings` provides access to PostgreSQL’s configuration settings, including parameter names (`name`), current values (`setting`), and units (`unit`). We can use the `SHOW` and `SET` commands to display and change individual (e.g., `SHOW name`) or all (e.g., `SHOW ALL`) configuration parameters.
+The view [`pg_settings`](https://www.postgresql.org/docs/current/view-pg-settings.html) provides access to PostgreSQL’s configuration settings, including parameter names (`name`), current values (`setting`), and units (`unit`). We can use the `SHOW` and `SET` commands to display and change individual (e.g., `SHOW name`) or all (e.g., `SHOW ALL`) configuration parameters.
 
 #### File organization
 
@@ -155,7 +155,7 @@ into fixed-size slotted pages (default 8 KB). Each page consists of:
 - An array of 4-byte tuple pointers, referencing stored tuples.
 - The record data, containing actual table rows.
 
-We can examine the internal structure of a page using the `pageinspect` extension. 
+We can examine the internal structure of a page using the [`pageinspect`](https://www.postgresql.org/docs/current/pageinspect.html) extension. 
 
 ##### Heap file
 
@@ -212,7 +212,7 @@ SELECT reltuples, relpages FROM pg_class WHERE relname = 'nation';
         25 |        1
 ```
 
-Attribute-level statistics can be queried using the view `pg_stats`:
+Attribute-level statistics can be queried using the view [`pg_stats`](https://www.postgresql.org/docs/current/view-pg-stats.html):
 
 ```sql
 SELECT null_frac, n_distinct, most_common_vals, most_common_freqs, correlation
@@ -261,7 +261,7 @@ WHERE tablename = 'orders' and attname = 'o_totalprice';
 
 ##### Estimated execution costs, cardinalities, and query plan
 
-The well-known `EXPLAIN` command offers outputs in different format (i.e., `TEXT`, `JSON`, `XML`, `YAML`) and exposes total execution costs (`cost`), estimated cardinalities (`rows`), and information per operator.
+The well-known [`EXPLAIN`](https://www.postgresql.org/docs/current/sql-explain.html) command offers outputs in different format (i.e., `TEXT`, `JSON`, `XML`, `YAML`) and exposes total execution costs (`cost`), estimated cardinalities (`rows`), and information per operator.
 ```sql
 EXPLAIN SELECT * FROM nation WHERE n_regionkey=4;
 ```
@@ -482,13 +482,13 @@ FROM heap_page_items(get_raw_page('student', 0));
 ```
 
 #### Inspect running transactions and row locks
-So far, we used auto commit.
-To inspect runnig/active transaction, we begin a transaction:
+So far, we used auto-commit.
+To inspect running/active transactions, we begin a transaction:
 ```sql
 BEGIN TRANSACTION;
 demo_db_internals=*# UPDATE student SET phone_number = '0405' WHERE student_id = 1;
 ```
-Inspect currently running transactions **from another `psql` shell**:
+And inspect currently running transactions **from another `psql` shell** using [`pg_stat_activity`](https://www.postgresql.org/docs/17/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW) view:
 ```sql
 SELECT 
     pid, 
@@ -564,6 +564,8 @@ WHERE pg_class.relname = 'student';
 
 #### WAL (write-ahead log) inspection
 
+We can use the [`pg_walinspect`](https://www.postgresql.org/docs/17/pgwalinspect.html) module to inspect the write-ahead log.
+
 #### Process inspection
 Inspect PostgreSQL processes:
 ```sql
@@ -589,7 +591,7 @@ After initializing the connection (including startup messages, authentication, a
 The PostgreSQL wire format is also used for other newer systems and a typical application-level protocol on TCP.
 For education purposes, it is valuable to understand that the default result table format is not engineered for large data transfers.
 Noteworthy, PostgreSQL's optimizers query execution costs do not include conversion and transmission to client, which can become the bottleneck of queries.
-The exchanged messages can be observed, for example, with Wireshark:
+The exchanged messages can be observed, for example, with [Wireshark](https://www.wireshark.org/):
 
 - Open `Wireshark`
 - Select the network interface (e.g., Loopback)
