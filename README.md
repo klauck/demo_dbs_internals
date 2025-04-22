@@ -34,7 +34,7 @@ Alternatively, you can run the demonstrations using Docker.
 **1. Get the Scripts and Data**
 
 ```
-git clone git@github.com:klauck/demo_dbs_internals.git
+git clone https://github.com/klauck/demo_dbs_internals.git
 cd demo_dbs_internals
 ```
 
@@ -83,7 +83,7 @@ docker start demo_postgres
 
 **6. Open the Container Shell**
 
-Open a shell in the container, e.g., for inspecting created files by PostgreSQL
+Open a shell in the container, e.g., for inspecting the created files by PostgreSQL
 
 ```
 docker exec -it demo_postgres bash
