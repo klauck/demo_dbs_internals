@@ -1,4 +1,4 @@
-# Demonstrations for Teaching and Learning Database System Internals
+# Hands-On PostgreSQL Demonstrations for Teaching and Learning Database System Internals
 
 We present a collection of demonstrations for teaching and learning database system internals using PostgreSQL.
 The demonstrations cover key aspects of the database representation on disk and query processing, visualized in the following graphic.
@@ -605,3 +605,11 @@ psql -h 127.0.0.1 -d demo_db_internals
 Wireshark screenshot, showing the transmitted query:
 
 <img src="https://github.com/klauck/demo_dbs_internal/blob/main/figures/wireshark_screenshot.png" width="900" />
+
+
+
+
+
+## License
+
+ <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><span property="dct:title">The collection "Hands-On PostgreSQL Demonstrations for Teaching and Learning Database System Internals"</span> by <span property="cc:attributionName">Stefan Halfpap</span> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt=""></a></p>
