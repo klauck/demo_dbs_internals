@@ -5,6 +5,11 @@ The demonstrations cover key aspects of the database representation on disk and 
 
 <img src="https://github.com/klauck/demo_dbs_internal/blob/main/figures/demonstrated_database_system_internals.png" width="400" />
 
+## Slides
+
+[Lightning Talk](https://github.com/klauck/demo_dbs_internals/blob/main/slides/25_05_09_PGConfDE.pdf) at PostgreSQL Conference Germany, Berlin – May 9, 2025.
+
+
 ## Demonstrations per Lecture Topic
 The demonstrations can be directly integrated into lectures about database system internals, for example, by switching between slide presentations giving background and hands-on demonstrations using PostgreSQL’s command line tool `psql`. We list common lecture topics and suitable demonstrations in the following table.
 
