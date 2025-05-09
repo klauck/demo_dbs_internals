@@ -607,6 +607,16 @@ Wireshark screenshot, showing the transmitted query:
 <img src="https://github.com/klauck/demo_dbs_internal/blob/main/figures/wireshark_screenshot.png" width="900" />
 
 
+## Attribution
+
+The demonstrations are inspired, enabled, and partly adopted from existing write-ups and PostgreSQL extensions: without the previously publicly available material, collecting, designing, and engineering the demonstrations would have been more tedious.
+
+**Sources for PostgreSQL internals:**
+
+- Hironobu Suzuki: The Internals of PostgreSQL. https://www.interdb.jp/pg/. Accessed: 2025-05-09.
+- The PostgreSQL Global Development Group: PostgreSQL 17 Documentation. https://www.postgresql.org/docs/17/index.html. Accessed: 2025-03-27.
+- Egor Rogov: PostgreSQL 14 Internals. (2023) https://postgrespro.com/community/books/internals. Accessed: 2025-05-09.
+
 
 
 
