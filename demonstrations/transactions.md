@@ -1,6 +1,6 @@
 # Demonstrating Transactions
 
-## Motivation: Sources of Inconcistencies
+## Motivation: Sources of Inconsistencies
 
 ### Multiple Concurrent DBS Users
 
@@ -53,7 +53,7 @@ WHERE c_custkey = 17;
 To ensure consistency, you should group both updates within a single transaction:
 
 ```sql
-BEGIN TRANSACTION;    -- or `BEGIN TRANSACTION`
+BEGIN TRANSACTION;    -- or use `START TRANSACTION`
 
 -- Execute your SQL statements here
 
