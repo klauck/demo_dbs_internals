@@ -1,5 +1,7 @@
 # Demonstrating Transactions
 
+Follow the [setup instructions](https://github.com/klauck/demo_dbs_internals?tab=readme-ov-file#setup), then connect to PostgreSQL using `psql` as described in the guide.
+
 ## Motivation: Sources of Inconsistencies
 
 ### Multiple Concurrent DBS Users
