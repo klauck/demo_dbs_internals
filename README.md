@@ -198,6 +198,14 @@ FROM heap_page_items(get_raw_page('region', 0));
   5 |   7568 |        1 |    163 |    938 |      0 |        0 | (0,5)  |           3 |       2306 |     24 |        |       | \x040...
 ```
 
+#### PostgreSQL Page Visualizer
+
+PostgreSQL pages and effects of data modifications can be ispected using our PostgreSQL page visualizer (https://github.com/dhristov11/postgresql-visualizer).
+
+
+<img src="https://github.com/klauck/demo_dbs_internal/blob/main/figures/page_visualizer_screenshot.png" width="500" />
+
+
 ##### Index file
 
 
