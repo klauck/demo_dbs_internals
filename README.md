@@ -167,7 +167,7 @@ We can examine the internal structure of a page using the [`pageinspect`](https:
 Inspect the page header of the `region` table's first block
 
 ```sql
-CREATE EXTENSION pageinspect;
+CREATE EXTENSION IF NOT EXISTS pageinspect;
 SELECT * FROM page_header(get_raw_page('region', 0));
 ```
 ```
@@ -402,7 +402,7 @@ WHERE o_totalprice BETWEEN 10000 AND 200000;
 The extension [`pg_buffercache`](https://www.postgresql.org/docs/current/pgbuffercache.html) enables an inspection of shared buffer states:
 
 ```sql
-CREATE EXTENSION pg_buffercache;
+CREATE EXTENSION IF NOT EXISTS pg_buffercache;
 SELECT * FROM pg_buffercache LIMIT 5;
 ```
 ```
@@ -533,7 +533,7 @@ ORDER BY query_start;
 
 Inspect the locked rows of the `student` table using the [`pgrowlocks`](https://www.postgresql.org/docs/current/pgrowlocks.html) module:
 ```sql
-CREATE EXTENSION pgrowlocks;
+CREATE EXTENSION IF NOT EXISTS pgrowlocks;
 SELECT locked_row, locker, modes FROM pgrowlocks('student');
 ```
 ```
