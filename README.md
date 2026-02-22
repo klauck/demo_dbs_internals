@@ -499,7 +499,7 @@ So far, we used auto-commit.
 To inspect running/active transactions, we begin a transaction:
 ```sql
 BEGIN TRANSACTION;
-demo_db_internals=*# UPDATE student SET phone_number = '0405' WHERE student_id = 1;
+UPDATE student SET phone_number = '0405' WHERE student_id = 1;
 ```
 And inspect currently running transactions **from another `psql` shell** using [`pg_stat_activity`](https://www.postgresql.org/docs/17/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW) view:
 ```sql
@@ -533,7 +533,7 @@ ORDER BY query_start;
 
 Inspect the locked rows of the `student` table using the [`pgrowlocks`](https://www.postgresql.org/docs/current/pgrowlocks.html) module:
 ```sql
-CREATE extension pgrowlocks;
+CREATE EXTENSION pgrowlocks;
 SELECT locked_row, locker, modes FROM pgrowlocks('student');
 ```
 ```
