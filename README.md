@@ -7,6 +7,8 @@ The demonstrations cover key aspects of the database representation on disk and 
 
 ## Slides
 
+[Paper Presentation](https://github.com/klauck/demo_dbs_internals/blob/main/slides/26_03_24_edbt_data_ed.pdf) at DataEd’26, Tampere, Finland - March 24, 2026.
+
 [Lightning Talk](https://github.com/klauck/demo_dbs_internals/blob/main/slides/25_05_09_PGConfDE.pdf) at PostgreSQL Conference Germany, Berlin – May 9, 2025.
 
 
