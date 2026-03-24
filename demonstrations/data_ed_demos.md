@@ -1,9 +1,11 @@
-# Demonstrations for DataEd Presentation
+# Demonstrations for the DataEd'26 Presentation
 
 
 ## psql
 
 ### Setup
+
+Executed before the presentation.
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pageinspect;
@@ -20,48 +22,59 @@ INSERT INTO student VALUES(1, 'Sarah', '0815');
 
 ### Commands
 
+Show user tables:
 
 ```sql
 \d
 ```
 
-```sql
-SHOW data_directory;
-```
-
-```sql
-SELECT pg_relation_filepath('lineitem');
-```
-
-```sql
-SELECT pg_relation_filepath('student');
-```
+Show table contents:
 
 ```sql
 SELECT * FROM student;
 ```
 
+Show the directory in which PostgreSQL stores its data:
+
 ```sql
-\d+
+SHOW data_directory;
 ```
+
+Show the file path for a table:
+
+```sql
+SELECT pg_relation_filepath('student');
+```
+
+Show a page header (page 0):
 
 ```sql
 SELECT * FROM page_header(get_raw_page('student', 0));
 ```
+
+Insert a new tuple:
 
 ```sql
 INSERT INTO student VALUES(2, 'Jin', '1704');
 ```
 
+Show the page header after the insert (reduced free space):
+
 ```sql
 SELECT * FROM page_header(get_raw_page('student', 0));
 ```
+
+Show table contents after insert, including tuple locations (page_id, line_pointer)
 
 ```sql
 SELECT ctid, student_id, name, phone_number FROM student;
 ```
 
 ## PGlite
+
+https://pglite.dev/repl/
+
+Used for the PGlite screenshot.
 
 ### Setup
 
